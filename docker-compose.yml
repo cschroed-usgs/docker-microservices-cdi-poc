@@ -1,0 +1,99 @@
+---
+version: '3'
+
+networks:
+  microservice-cdi-poc-network:
+
+volumes:
+  docker-engine-volume:
+  artifactory-data-volume:
+  artifactory-postgresql-data-volume:
+  artifactory-nginx-data-volume:
+
+services:
+  registry:
+    image: registry:2.6.1
+    container_name: registry
+    networks:
+      microservice-cdi-poc-network:
+        aliases:
+          - registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data/registry:/var/lib/registry
+      - ./data/auth:/auth
+      - ./data/certs:/certs
+    env_file:
+      - "./registry/compose${DOCKER_REGISTRY_ENV_LOCAL}.env"
+
+  jenkins:
+    build:
+      context: ./jenkins
+    container_name: jenkins
+    networks:
+      microservice-cdi-poc-network:
+        aliases:
+          - jenkins-master
+    volumes:
+      - "./data/jenkins/home:/var/jenkins_home"
+      - "docker-engine-volume:/var/lib/docker"
+      - "${DOCKER_CERT_PATH}:/certs:ro"
+      - "./jenkins/secrets:/secrets:ro"
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    env_file:
+      - "./jenkins/compose${DOCKER_JENKINS_ENV_LOCAL}.env"
+    environment:
+      - DOCKER_CERT_PATH=/certs
+      - DOCKER_HOST=${DOCKER_HOST}
+      - DOCKER_TLS_VERIFY=1
+
+  artifactory:
+    build:
+      context: ./artifactory
+    # Use the pro version if you have a license
+    # image: docker.bintray.io/jfrog/artifactory-pro:5.3.2
+    container_name: artifactory
+    networks:
+      microservice-cdi-poc-network:
+        aliases:
+          - artifactory
+    ports:
+      - "8081:8081"
+    volumes:
+      - artifactory-data-volume:/var/opt/jfrog/artifactory
+    env_file:
+      - "./artifactory/compose${DOCKER_ARTIFACTORY_ENV_LOCAL}.env"
+    depends_on:
+     - artifactory_postgresql
+
+  artifactory_postgresql:
+    image: docker.bintray.io/postgres:9.5.2
+    container_name: artifactory_postgresql
+    networks:
+      microservice-cdi-poc-network:
+        aliases:
+          - postgresql
+    env_file:
+      - "./artifactory/compose${DOCKER_ARTIFACTORY_ENV_LOCAL}.env"
+    volumes:
+     - artifactory-postgresql-data-volume:/var/lib/postgresql/data
+  #
+  # artifactory_nginx:
+  #   image: docker.bintray.io/jfrog/nginx-artifactory-pro:5.3.2
+  #   container_name: artifactory_nginx
+  #   networks:
+  #     microservice-cdi-poc-network:
+  #       aliases:
+  #         - nginx
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   depends_on:
+  #     - artifactory
+  #   volumes:
+  #     - artifactory-nginx-data-volume:/var/opt/jfrog/nginx
+  #   env_file:
+  #     - "compose${DOCKER_ARTIFACTORY_ENV_LOCAL}.env"
