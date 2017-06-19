@@ -1,6 +1,6 @@
 .DS_Store
 !.keep
-data/
+data/registry
 root.crt
 ./jenkins/id_rsa
 ./jenkins/id_rsa.pub
