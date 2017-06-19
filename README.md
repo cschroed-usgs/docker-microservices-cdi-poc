@@ -1,35 +1,198 @@
-## Artifactory
+## Workflow
 
-Included is the Artifactory Docker Compose configuration. Artifactory OSS does not
-include a Docker repository capability. If you have a license, you can try using the
-pro version.
+Development workflow: Merge new code to Dropwizard project -> Jenkins checks out
+new code and builds -> Artifact is shipped to Artifactory -> Jenkins uses successfully
+built archived artifacts to create new Docker image -> Docker image is pushed to
+private Docker repository at "LATEST" version
 
-Add Insecure Registry
----
-https://docs.docker.com/registry/insecure/
-http://akrambenaissi.com/2015/11/17/addingediting-insecure-registry-to-docker-machine-afterwards/
+Release workflow: New release is created for the Dropwizard project using Jenkins ->
+Jenkins checks out code and builds new artifact -> Jenkins ships new artifact to
+Artifactory -> Jenkins uses successfully built archived artifacts to create new
+Docker image at a specific release tag -> Docker image is pushed to Artifactory
 
-- Edit ~/.docker/machine/machines/cdi-poc/config.json
-- docker-machine provision cdi-poc
+## Docker Machine
 
-Generate Wildcard Certificate
----
-openssl genrsa -out data/certs/wildcard.key 2048
-openssl req -nodes -newkey rsa:2048 -keyout data/certs/wildcard.key -out data/certs/wildcard.csr -subj "/C=US/ST=Wisconsin/L=Middleon/O=US Geological Survey/OU=WMA/CN=registry"
-openssl x509 -req -days 9999 -in data/certs/wildcard.csr -signkey data/certs/wildcard.key  -out data/certs/wildcard.crt
+This Continuous Delivery implementation works when using Docker Machine. A large
+reason for this is because the Docker engine lives in the Docker Machine VM. This
+allows the Jenkins Docker container to take advantage of that Docker engine by using
+it to create Docker images and interact with the private Docker registry. While
+it's possible to run the [Docker engine within a Docker container](https://github.com/jpetazzo/dind),
+it's not ideal and has a lot of caveats that take away from the way this Continuous
+delivery pipeline would be set up in the real world. The Jenkins Docker container
+interacts with the Docker Machine Docker engine in the same way as the host running
+Docker Machine does: via HTTPS.
 
-Create Auth password
----
-`docker run --entrypoint htpasswd registry:2 -Bbn testuser testpassword > auth/htpasswd`
+When creating a Docker Machine VM, for this reference implementation, I would suggest
+creating one with about 4G of RAM and at least 2 CPUs. If using MacOS, I would also
+suggest [initiating the machine with the PCnet-FAST III NIC type](https://github.com/docker/machine/issues/1942).
 
-`docker-machine create -d virtualbox --virtualbox-memory "4096" --virtualbox-hostonly-nictype Am79C973 cdi-poc`
+An example of a launch would look like this:
 
-```bash
-echo "sudo mkdir -p /var/lib/boot2docker/certs; \
+```
+$ docker-machine create -d virtualbox --virtualbox-memory "4096" --virtualbox-hostonly-nictype Am79C973 --virtualbox-cpu-count "2" cdi-poc
+
+Running pre-create checks...
+(cdi-poc) Default Boot2Docker ISO is out-of-date, downloading the latest release...
+(cdi-poc) Latest release for github.com/boot2docker/boot2docker is v17.05.0-ce
+(cdi-poc) Downloading /Users/isuftin/.docker/machine/cache/boot2docker.iso from https://github.com/boot2docker/boot2docker/releases/download/v17.05.0-ce/boot2docker.iso...
+(cdi-poc) 0%....10%....20%....30%....40%....50%....60%....70%....80%....90%....100%
+Creating machine...
+(cdi-poc) Copying /Users/isuftin/.docker/machine/cache/boot2docker.iso to /Users/isuftin/.docker/machine/machines/cdi-poc/boot2docker.iso...
+(cdi-poc) Creating VirtualBox VM...
+(cdi-poc) Creating SSH key...
+(cdi-poc) Starting the VM...
+(cdi-poc) Check network to re-create if needed...
+(cdi-poc) Waiting for an IP...
+Waiting for machine to be running, this may take a few minutes...
+Detecting operating system of created instance...
+Waiting for SSH to be available...
+Detecting the provisioner...
+Provisioning with boot2docker...
+Copying certs to the local machine directory...
+Copying certs to the remote machine...
+Setting Docker configuration on the remote daemon...
+Checking connection to Docker...
+Docker is up and running!
+To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env cdi-poc
+```
+
+Now, after typing `$ eval $(docker-machine env cdi-poc)` my Docker client on my MacOS
+host can freely communicate with Docker Machine.  
+
+#### Root SSL certificates
+When on the DOI network, or any network with a requirement that all SSL traffic go
+through a proxy, you must append your organization's root certificate into the VM
+running the Docker engine. Not doing so leaves the Docker engine unable to pull
+Docker images from Dockerhub due to the inability to verify TLS communication.
+Download your organization's root certificate to your current directory. Once you have it locally, you can copy it directly to your VM and restart it. In this example, the root certificate is named `root.crt` in my current directory and my VM's name is `cdi-poc`:
+
+```
+$ echo "sudo mkdir -p /var/lib/boot2docker/certs; \
 echo "\""$(cat root.crt)"\"" | \
 sudo tee -a /var/lib/boot2docker/certs/root.crt" | \
 docker-machine ssh cdi-poc && docker-machine restart cdi-poc
+
+Boot2Docker version 17.05.0-ce, build HEAD : 5ed2840 - Fri May  5 21:04:09 UTC 2017
+Docker version 17.05.0-ce, build 89658be
+-----BEGIN CERTIFICATE-----
+MIIJ+jCCB...kVEl2DE0WcUw=
+-----END CERTIFICATE-----
+Restarting "cdi-poc"...
+(cdi-poc) Check network to re-create if needed...
+(cdi-poc) Waiting for an IP...
+Waiting for SSH to be available...
+Detecting the provisioner...
+Restarted machines may have new IP addresses. You may need to re-run the `docker-machine env` command.
 ```
+
+Now you can try to pull a small image to test:
+
+```
+$ docker pull alpine
+Using default tag: latest
+latest: Pulling from library/alpine
+2aecc7e1714b: Pull complete
+Digest: sha256:0b94d1d1b5eb130dd0253374552445b39470653fb1a1ec2d81490948876e462c
+Status: Downloaded newer image for alpine:latest
+```
+
+## Docker Compose
+
+For most of the work done in this continuous delivery POC, I use Docker Compose to
+orchestrate building, startup and shutdown of the Docker containers. All of the
+instructions provided are for Docker compose. The Docker compose configuration is
+provided with this project.
+
+## Artifactory
+
+Included is the Artifactory Docker Compose configuration. This server is used as a reference implementation of a Maven repository. To build the Artifactory OSS version, simply go to the root directory of this project and type `docker-compose build artifactory`. The Artifactory container build configuration is in the `artifactory` subdirectory. Note that if you are on a network that does require an SSL certificate for TLS communications, copy your organization's root SSL certificate to the artifactory subdirectory and name it `root.crt`. The Artifactory container build will automatically pick this up and use it to modify the openssl and Java keystore of the Artifactory container.
+
+Artifactory OSS does not include a Docker repository capability. If you have a license, you can try using the pro version. To do so, edit the Dockerfile in `artifactory/Dockerfile` and replace the first line. Instead of `FROM docker.bintray.io/jfrog/artifactory-oss:5.3.2` it should then read `FROM docker.bintray.io/jfrog/artifactory-pro:5.3.2`
+
+To launch, just type `docker-compose up artifactory`
+
+### Configuration
+The Artifactory container is pre-configured with a Maven repository. The Artifactory repository configuration is held in `artifactory/artifactory.config.import.xml` and is used in the build and startup of the Artifactory container. If you update the configuration for your own purposes, you can have Artifactory export this configuration. Copy that export to `artifactory/artifactory.config.import.xml` and rebuild the container.
+
+The Artifactory container is also pre-configured with login credentials. The credentials are held in a file `artifactory/security.import.xml`. The initial username is `admin` and the password is `adminpassword`. If you decide to change this, Artifactory can export the security settings via the administration console. Copy those settings to `artifactory/security.import.xml` and rebuild the container.
+
+### PostgreSQL
+
+The Docker container can be started by typing `docker-compose up artifactory`. The Artifactory container uses PostgreSQL for a back-end server. There is a PostgreSQL container configured and the container starts up automatically when Artifactory starts.
+
+### Persistence
+
+Both the Artifactory container as well as the PostgreSQL container use a Docker data volume when created with Docker Compose. These data volumes are created the first time that the Artifactory and PostgreSQL containers start and persist beyond the termination of the containers. The next time the containers start up again, they are automatically reattached to the new containers. This provides a very simple way to give data persistence to Artifactory.
+
+The data volume for Artifactory is mounted to `/var/opt/jfrog/artifactory` in the container. [More info here](https://www.jfrog.com/confluence/display/RTF/Installing+with+Docker#InstallingwithDocker-UsingHostDirectories).
+
+### Accessing Artifactory UI
+
+Once Artifactory has been launched, you should be able to point a browser at your Docker Machine's IP at port 8081 to access the web UI for Artifactory.
+
+To find out the Docker Machine's IP, you can type `docker-machine ip <machine name>`:
+
+```
+docker-machine ip cdi-poc
+192.168.99.100
+```
+
+You can then point your browser to htt://192.168.99.100:8081
+
+## Docker Private Registry
+
+Because the Artifactory OSS version does not provide a Docker repository, I've opted to include a container that does serve as a private Docker repository. The repository is created by the official Docker repository container.
+
+### Creating a user/password for the registry
+
+You only need to read this if you want to create the Docker private registry not using the default username and password of `testuser` and `testpassword` respectively.
+
+Before creating the Docker registry container, you will need to create an auth password for Docker clients to use. To do so, the Docker registry image contains a script to create the configuration needed.
+
+Here is an example of the command:
+
+`docker run --entrypoint htpasswd registry:2 -Bbn testuser testpassword > auth/htpasswd`
+
+Once this is done, the registry can be used given the username and password you've used in this command.
+
+The initial htpasswd file is included with this repository. It is the outcome of the above command set.
+
+### Creating server certificates
+
+You only need to read this if you want to create the Docker registry using SSL certificates for TLS communication that are not just wildcard self-signed certificates.
+
+The registry, to be a secured private registry, needs TLS certificates installed. To do so, you can generate them on the host machine and copy them to the mounted volume directory that is mounted to `/certs` in the Docker container. Here is an example of how a wildcard certificate for the Docker registry may be created:
+
+```
+$ openssl genrsa -out data/certs/wildcard.key 2048
+$ openssl req -nodes -newkey rsa:2048 -keyout data/certs/wildcard.key -out data/certs/wildcard.csr -subj "/C=US/ST=Wisconsin/L=Middleon/O=US Geological Survey/OU=WMA/CN=registry"
+$ openssl x509 -req -days 9999 -in data/certs/wildcard.csr -signkey data/certs/wildcard.key  -out data/certs/wildcard.crt
+```
+
+Once the certificates are in the `data/certs` directory, the Docker container will pick them up and use them for TLS-enabled communication.
+
+A default certificate using the above command set is included with this repository.
+
+### Persistence
+
+The Docker private registry persists data to a Docker volume. The Docker volume is created the first time you start the registry via Docker Compose. The registry data path is `/var/lib/registry`. The registry holds its login information at `/auth`. The certificates are held in `/certs`
+
+If you wish to recreate the registry without any images, you can stop the container and remove all content in the `./data/registry` directory on your host. The context for this directory is this repository.
+
+### Environments
+
+The default environments file for the private Docker registry is located in `registry/compose.env`
+
+You can change this to suit your needs or you can use your own local version of this file. Simply copy `registry/compose.yml` to `registry/compose_local.yml` and export a bash variable named `DOCKER_REGISTRY_ENV_LOCAL` to the value of `_local`. Then start the registry via Docker Compose:
+
+```
+$ export DOCKER_REGISTRY_ENV_LOCAL=_local
+$ docker-compose registry up
+```
+### Caveats
+
+While the Dockr registry container is known to other containers using the network address `registry` when launhed via Docker Compose, the Docker client running on the Jenkins container will still access it via localhost. The reason for this is that the Docker client commands the Docker engine running in the VM. This is the same Docker engine that runs the Jenkins and the Registry containers. In the context of the Docker engine, that Docker registry container does run on the host of the VM, hence the Docker engine will connect to it via localhost. This is confusing at first when you see jobs configured in Jenkins to use localhost for the registry. In the real world, a Jenkins instance would end up calling the Docker engine through the TCP stack or HTTPS address of the remote machine.  
+
 
 ## Jenkins
 
