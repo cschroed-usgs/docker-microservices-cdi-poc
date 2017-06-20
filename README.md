@@ -10,6 +10,14 @@ Jenkins checks out code and builds new artifact -> Jenkins ships new artifact to
 Artifactory -> Jenkins uses successfully built archived artifacts to create new
 Docker image at a specific release tag -> Docker image is pushed to Artifactory
 
+## Docker Software Versions
+
+For testing this configuration, I have the following software installed at these versions:
+
+- Docker Machine: 0.12.10
+- Docker Compose: 1.13.0
+- Docker Client: 17.05.0-ce
+
 ## Docker Machine
 
 This Continuous Delivery implementation works when using Docker Machine. A large
@@ -58,6 +66,10 @@ To see how to connect your Docker Client to the Docker Engine running on this vi
 
 Now, after typing `$ eval $(docker-machine env cdi-poc)` my Docker client on my MacOS
 host can freely communicate with Docker Machine.  
+
+#### Version requirement
+
+The current version of Docker Machine that this project has been tested with is `0.12.0`
 
 #### Root SSL certificates
 When on the DOI network, or any network with a requirement that all SSL traffic go
