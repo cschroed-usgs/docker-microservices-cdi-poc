@@ -18,7 +18,14 @@ For testing this configuration, I have the following software installed at these
 - Docker Compose: 1.13.0
 - Docker Client: 17.05.0-ce
 
-## Docker Machine
+## Docker Compose
+
+For most of the work done in this continuous delivery POC, I use Docker Compose to
+orchestrate building, startup and shutdown of the Docker containers. All of the
+instructions provided are for Docker compose. The Docker compose configuration is
+provided with this project.
+
+## Docker Machine ([tl;dr](#machine-tldr))
 
 This Continuous Delivery implementation works when using Docker Machine. A large
 reason for this is because the Docker engine lives in the Docker Machine VM. This
@@ -108,14 +115,22 @@ Digest: sha256:0b94d1d1b5eb130dd0253374552445b39470653fb1a1ec2d81490948876e462c
 Status: Downloaded newer image for alpine:latest
 ```
 
-## Docker Compose
+#### <a name="machine-tldr"></a>TL;DR
 
-For most of the work done in this continuous delivery POC, I use Docker Compose to
-orchestrate building, startup and shutdown of the Docker containers. All of the
-instructions provided are for Docker compose. The Docker compose configuration is
-provided with this project.
+Any text prefaced with `$` is a bash command
 
-## Artifactory
+- Copy your organization's root SSL certificate to your current working directory
+
+- `$ docker-machine create -d virtualbox --virtualbox-memory "4096" --virtualbox-hostonly-nictype Am79C973 --virtualbox-cpu-count "2" cdi-poc`
+
+- `$ echo "sudo mkdir -p /var/lib/boot2docker/certs; \
+echo "\""$(cat root.crt)"\"" | \
+sudo tee -a /var/lib/boot2docker/certs/root.crt" | \
+docker-machine ssh cdi-poc && docker-machine restart cdi-poc`
+
+- `$ eval $(docker-machine env cdi-poc)`
+
+## Artifactory ([tl;dr](#artifactory-tldr))
 
 Included is the Artifactory Docker Compose configuration. This server is used as a reference implementation of a Maven repository. To build the Artifactory OSS version, simply go to the root directory of this project and type `docker-compose build artifactory`. The Artifactory container build configuration is in the `artifactory` subdirectory. Note that if you are on a network that does require an SSL certificate for TLS communications, copy your organization's root SSL certificate to the artifactory subdirectory and name it `root.crt`. The Artifactory container build will automatically pick this up and use it to modify the openssl and Java keystore of the Artifactory container.
 
@@ -149,9 +164,16 @@ docker-machine ip cdi-poc
 192.168.99.100
 ```
 
-You can then point your browser to htt://192.168.99.100:8081
+You can then point your browser to http://192.168.99.100:8081
 
-## Docker Private Registry
+#### <a name="artifactory-tldr"></a>TL;DR
+
+- `$ docker-machine up artifactory`
+- `$ docker-machine ip cdi-poc`
+- Point your browser to the IP that docker-machine provides in the previous command. http://<ip>:8081
+- Log in using admin and adminpassword for username and password, respectively
+
+## Docker Private Registry ([tl;dr](#registry-tldr))
 
 Because the Artifactory OSS version does not provide a Docker repository, I've opted to include a container that does serve as a private Docker repository. The repository is created by the official Docker repository container.
 
@@ -203,8 +225,13 @@ $ docker-compose registry up
 ```
 ### Caveats
 
-While the Dockr registry container is known to other containers using the network address `registry` when launhed via Docker Compose, the Docker client running on the Jenkins container will still access it via localhost. The reason for this is that the Docker client commands the Docker engine running in the VM. This is the same Docker engine that runs the Jenkins and the Registry containers. In the context of the Docker engine, that Docker registry container does run on the host of the VM, hence the Docker engine will connect to it via localhost. This is confusing at first when you see jobs configured in Jenkins to use localhost for the registry. In the real world, a Jenkins instance would end up calling the Docker engine through the TCP stack or HTTPS address of the remote machine.  
+#### Hosts
 
+While the Docker registry container is known to other containers using the network address `registry` when launched via Docker Compose, the Docker client running on the Jenkins container will still access it via localhost. The reason for this is that the Docker client commands the Docker engine running in the VM. This is the same Docker engine that runs the Jenkins and the Registry containers. In the context of the Docker engine, that Docker registry container does run on the host of the VM, hence the Docker engine will connect to it via localhost. This is confusing at first when you see jobs configured in Jenkins to use localhost for the registry. In the real world, a Jenkins instance would end up calling the Docker engine through the TCP stack or HTTPS address of the remote machine.  
+
+#### <a name="registry-tldr"></a>TL;DR
+
+- `$ docker-compose registry up`
 
 ## Jenkins
 
