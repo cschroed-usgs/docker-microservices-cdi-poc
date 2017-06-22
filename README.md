@@ -195,7 +195,7 @@ The initial htpasswd file is included with this repository. It is the outcome of
 
 You only need to read this if you want to create the Docker registry using SSL certificates for TLS communication that are not just wildcard self-signed certificates.
 
-The registry, to be a secured private registry, needs TLS certificates installed. To do so, you can generate them on the host machine and copy them to the mounted volume directory that is mounted to `/certs` in the Docker container. Here is an example of how a wildcard certificate for the Docker registry may be created:
+The registry, to be a secured private registry, needs TLS certificates installed. To do so, you can generate them on the host machine and copy them to the mounted volume directory that is mounted to `/certs` in the Docker container. On your host, that directory is `./data/certs`. This directory exists in the root of the project. You would just replace the files that are already sitting there as part of the source of this project. Here is an example of how a wildcard certificate for the Docker registry may be created:
 
 ```
 $ openssl genrsa -out data/certs/wildcard.key 2048
