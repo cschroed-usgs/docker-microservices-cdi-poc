@@ -221,7 +221,7 @@ You can change this to suit your needs or you can use your own local version of 
 
 ```
 $ export DOCKER_REGISTRY_ENV_LOCAL=_local
-$ docker-compose registry up
+$ docker-compose up registry
 ```
 ### Caveats
 
@@ -231,7 +231,7 @@ While the Docker registry container is known to other containers using the netwo
 
 #### <a name="registry-tldr"></a>TL;DR
 
-- `$ docker-compose registry up`
+- `$ docker-compose up registry`
 
 ## Jenkins
 
@@ -363,4 +363,4 @@ to the private Docker registry running in a seperate container.
 Sometimes when the Jenkins container fires up for the first time, the Maven
 auto-installation doesn't happen. Because of this, your build may fail. If you see
 a Maven missing error on a build, go to Manage Jenkins -> Global Tool Configuration
-scroll to Maven Installations and
+scroll to Maven Installations and verify there is an installer there. Then hit save.
