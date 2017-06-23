@@ -36,7 +36,6 @@ ENV JENKINS_HOME /var/jenkins_home
 COPY secrets/id_rsa /usr/share/jenkins/ref/.ssh/id_rsa
 COPY secrets/id_rsa.pub /usr/share/jenkins/ref/.ssh/id_rsa.pub
 
-
 USER root
 RUN chown -R jenkins:jenkins /usr/share/jenkins/ref/.ssh && chmod 700 /usr/share/jenkins/ref/.ssh && chmod 600 /usr/share/jenkins/ref/.ssh/*
 USER jenkins
@@ -53,6 +52,7 @@ COPY scripts/add_artifactory_server.groovy /usr/share/jenkins/ref/init.groovy.d/
 COPY scripts/install_maven.groovy /usr/share/jenkins/ref/init.groovy.d/5_install_maven.groovy
 COPY scripts/add_registry_credentials.groovy /usr/share/jenkins/ref/init.groovy.d/6_add_registry_credentials.groovy
 COPY scripts/set_git_global_config.groovy /usr/share/jenkins/ref/init.groovy.d/7_set_git_global_config.groovy
+COPY scripts/add_github_ssh_credentials.groovy /usr/share/jenkins/ref/init.groovy.d/8_add_github_ssh_credentials.groovy
 
 COPY scripts/dropwizard_config.groovy /usr/share/jenkins/ref/init.groovy.d/50_dropwizard_config.groovy
 COPY scripts/dropwizard_docker_image_config.groovy /usr/share/jenkins/ref/init.groovy.d/51_dropwizard_docker_image_config.groovy
