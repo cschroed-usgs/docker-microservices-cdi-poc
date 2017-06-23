@@ -9,7 +9,7 @@
         <net.uaznia.lukanus.hudson.plugins.gitparameter.GitParameterDefinition plugin="git-parameter@0.8.0">
           <name>Dropwizard Example Revision</name>
           <description></description>
-          <uuid>cbf6422c-bebc-43ab-be28-6c4bf88b708a</uuid>
+          <uuid>90064b5a-e82d-4246-83e1-03f1f6787fdf</uuid>
           <type>PT_BRANCH_TAG</type>
           <branch></branch>
           <tagFilter>*</tagFilter>
@@ -28,6 +28,7 @@
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
         <url>git@github.com:USGS-CIDA/poc-dropwizard-example.git</url>
+        <credentialsId>GITHUB_SSH_CREDENTIALS</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>

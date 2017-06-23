@@ -289,6 +289,8 @@ for more information on this
 Not having this causes GitHub commits to fail. Default is a placeholder. Use your own.
 - `GITHUB_CONFIG_EMAIL`: This is the Github email that Jenkins will use for interaction.
 Not having this causes GitHub commits to fail. Default is a placeholder. Use your own.
+- `GITHUB_SSH_KEY_PASS`: If your SSH keys that you are importing to Jenkins have a
+password associated with them, this is where it should be entered. Default is blank.
 - `MAVEN_INSTALLATION_VERSION`: Specifies the version of Maven to install when the
 container kicks off. Version `3.5.3` is default
 - `ARTIFACTORY_ID`: This is the ID for the Artifactory server in the Jenkins Artifactory
