@@ -27,6 +27,18 @@ provided with this project.
 
 ## Docker Machine ([tl;dr](#machine-tldr))
 
+Please be aware that it is not strictly necessary to use Docker Machine if using a
+Linux OS as a host. However, if you desire to keep the CDI POC encapsulated, be aware
+that `boot2docker` running in VirtualBox will mount the `/home` directory of a Linux
+host to `/hosthome`. This can be addressed by doing the following soft linking from the host:
+
+```
+docker-machine ssh ln -s -f /hosthome/your_user_on_the_host /home/your_user_on_the_host
+```  
+A gotcha of doing this is that `/home/your_user_on_the_host` has been found to
+be owned by root when the `boot2docker` is restarted. The command should be rerun
+if the `boot2docker` VM is restarted.
+
 This Continuous Delivery implementation works when using Docker Machine. A large
 reason for this is because the Docker engine lives in the Docker Machine VM. This
 allows the Jenkins Docker container to take advantage of that Docker engine by using
