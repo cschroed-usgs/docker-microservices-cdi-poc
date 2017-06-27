@@ -42,7 +42,7 @@ can be created on the VM that is run on boot. This can be done as follows:
 
 ```
 $printf "#\!/bin/sh\nln -s -f \"/hosthome/${USER}\" \"/home/${USER}\"\n" | docker-machine ssh cdi-poc sudo tee /var/lib/boot2docker/bootlocal.sh
-$docker-machine sudo chmod +x /var/lib/boot2docker/bootlocal.sh
+$docker-machine ssh cdi-poc sudo chmod +x /var/lib/boot2docker/bootlocal.sh
 ```
 
 This Continuous Delivery implementation works when using Docker Machine. A large
