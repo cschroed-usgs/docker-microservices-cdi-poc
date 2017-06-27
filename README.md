@@ -33,11 +33,17 @@ that `boot2docker` running in VirtualBox will mount the `/home` directory of a L
 host to `/hosthome`. This can be addressed by doing the following soft linking from the host:
 
 ```
-docker-machine ssh ln -s -f /hosthome/your_user_on_the_host /home/your_user_on_the_host
+$docker-machine ssh cdi-poc ln -s -f /hosthome/your_user_on_the_host /home/your_user_on_the_host
 ```  
 A gotcha of doing this is that `/home/your_user_on_the_host` has been found to
 be owned by root when the `boot2docker` is restarted. The command should be rerun
-if the `boot2docker` VM is restarted.
+if the `boot2docker` VM is restarted. Alternatively, a `/var/lib/boot2docker/bootlocal.sh`
+can be created on the VM that is run on boot. This can be done as follows:
+
+```
+$printf "#\!/bin/sh\nln -s -f \"/hosthome/${USER}\" \"/home/${USER}\"\n" | docker-machine ssh cdi-poc sudo tee /var/lib/boot2docker/bootlocal.sh
+$docker-machine sudo chmod +x /var/lib/boot2docker/bootlocal.sh
+```
 
 This Continuous Delivery implementation works when using Docker Machine. A large
 reason for this is because the Docker engine lives in the Docker Machine VM. This
