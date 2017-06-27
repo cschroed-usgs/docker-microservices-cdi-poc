@@ -58,7 +58,7 @@ for f in *.jar; do FILENAME=$f;done
 
 IS_SNAPSHOT=0
 if [[ $FILENAME == *&quot;SNAPSHOT&quot;* ]]; then
-  VERSION=&quot;LATEST&quot;
+  VERSION=&quot;latest&quot;
 else
 	VERSION=$(echo $FILENAME | cut -f3 -d-)
 fi
