@@ -41,7 +41,7 @@ if the `boot2docker` VM is restarted. Alternatively, a `/var/lib/boot2docker/boo
 can be created on the VM that is run on boot. This can be done as follows:
 
 ```
-$printf "#\!/bin/sh\nln -s -f \"/hosthome/${USER}\" \"/home/${USER}\"\n" | docker-machine ssh cdi-poc sudo tee /var/lib/boot2docker/bootlocal.sh
+$printf "#\!/bin/sh\n\nln -s -f \"/hosthome/${USER}\" \"/home/${USER}\"\nchown -R docker:staff \"/home/${USER}\"\n" | docker-machine ssh cdi-poc sudo tee /var/lib/boot2docker/bootlocal.sh
 $docker-machine ssh cdi-poc sudo chmod +x /var/lib/boot2docker/bootlocal.sh
 ```
 
