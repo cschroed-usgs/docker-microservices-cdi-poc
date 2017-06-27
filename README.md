@@ -45,6 +45,10 @@ $printf "#\!/bin/sh\nln -s -f \"/hosthome/${USER}\" \"/home/${USER}\"\n" | docke
 $docker-machine ssh cdi-poc sudo chmod +x /var/lib/boot2docker/bootlocal.sh
 ```
 
+In addition, if using Docker Machine on a Linux host, if you went through the procedure outlined at https://docs.docker.com/engine/installation/linux/linux-postinstall/, you will need to backout those
+changes. Otherwise, Docker commands will only be executed on the host rather than on the VM _despite_
+the environment being set to use the VM.
+
 This Continuous Delivery implementation works when using Docker Machine. A large
 reason for this is because the Docker engine lives in the Docker Machine VM. This
 allows the Jenkins Docker container to take advantage of that Docker engine by using
