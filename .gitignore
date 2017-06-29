@@ -4,6 +4,10 @@ data/registry
 root.crt
 ./jenkins/id_rsa
 ./jenkins/id_rsa.pub
+*.pypirc
 *_local.env
 id_rsa
 id_rsa.pub
+*.htpasswd
+data/jenkins
+data/pypi
