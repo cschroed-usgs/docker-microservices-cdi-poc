@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>3</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.3.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@github.com:ayan-usgs/falcon-docker-poc.git</url>
+        <credentialsId>GITHUB_SSH_CREDENTIALS</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.LocalBranch>
+        <localBranch>master</localBranch>
+      </hudson.plugins.git.extensions.impl.LocalBranch>
+      <hudson.plugins.git.extensions.impl.WipeWorkspace/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>docker login -u $DOCKER_REG_USER -p $DOCKER_REG_PASSWORD localhost:5000</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+echo &quot;VERSION=latest&quot; &gt;&gt; config.properties
+cp /usr/lib/ssl/certs/local.crt root.crt
+virtualenv --python=python3 env
+env/bin/pip install --upgrade pip
+env/bin/pip download falcon-hello-world --extra-index-url http://pypi:80/ --no-deps --trusted-host pypi
+</command>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.1.1">
+      <info>
+        <propertiesFilePath>config.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <com.cloudbees.dockerpublish.DockerBuilder plugin="docker-build-publish@1.3.2">
+      <server plugin="docker-commons@1.7">
+        <uri>$DOCKER_HOST</uri>
+      </server>
+      <registry plugin="docker-commons@1.7">
+        <url>https://localhost:5000/</url>
+        <credentialsId>PRIVATE_DOCKER_REGISTRY_CREDENTIALS</credentialsId>
+      </registry>
+      <repoName>localhost:5000/falcon-example</repoName>
+      <noCache>false</noCache>
+      <forcePull>true</forcePull>
+      <skipBuild>false</skipBuild>
+      <skipDecorate>false</skipDecorate>
+      <repoTag>${VERSION}</repoTag>
+      <skipPush>false</skipPush>
+      <createFingerprint>true</createFingerprint>
+      <skipTagLatest>false</skipTagLatest>
+      <buildAdditionalArgs></buildAdditionalArgs>
+      <forceTag>false</forceTag>
+    </com.cloudbees.dockerpublish.DockerBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.33">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.8.8"/>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.12">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>PRIVATE_DOCKER_REGISTRY_CREDENTIALS</credentialsId>
+          <usernameVariable>DOCKER_REG_USER</usernameVariable>
+          <passwordVariable>DOCKER_REG_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
