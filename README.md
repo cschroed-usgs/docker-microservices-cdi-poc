@@ -267,6 +267,8 @@ A user and password must be setup in the PyPI repo before artifacts can be deplo
 
 `htpasswd` will prompt you for a password before it exits.
 
+To launch type: `docker-compose up pypi`
+
 ##
 
 ## Jenkins
