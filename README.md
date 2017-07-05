@@ -259,10 +259,9 @@ While the Docker registry container is known to other containers using the netwo
 
 Artifactory OSS does not support PyPI repositories. In order to store Python artifacts, a separate PyPI container is included.
 
-## The PyPI Secrets Directory
+## Creating a custom PyPI repo username and password
 
-A user and password must be setup in the PyPI repo before artifacts can be deployed to it. If there is not already a `secrets`
-directory under `pypi`, go ahead and create it. Within the `secrets` directory, run the following:
+A user and password must be setup in the PyPI repo before artifacts can be deployed to it. While a default user and password are included, a custom username and password can be specified. To do so, `cd` to the `pypi/secrets` directory and run the following:
 
 - `$ htpasswd -s .htpasswd some_username_of_your_choosing`
 
@@ -300,7 +299,7 @@ in GitHub to provide access to the repositories that include your microservice s
 See [GitHub documentation](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/) for more information
 
 - `.pypirc`: This is a configuration file that tells `pip` how to upload Python artifacts to
-the PyPI repo that was created earlier. The file should look something like this:
+the PyPI repo that was created earlier. The default should look something like this:
 ```
 [distutils]
 index-servers =
@@ -311,6 +310,7 @@ repository: http://pypi:80
 username: some_username_of_your_choosing_from_the_pypi_step
 password: some_password_of_your_choosing_from_the_pypi_step
 ```
+If you made a custom user and password, replace those values in the `.pypirc`.
 
 #### Environments file
 
