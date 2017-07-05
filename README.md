@@ -190,7 +190,7 @@ You can then point your browser to http://192.168.99.100:8081
 
 #### <a name="artifactory-tldr"></a>TL;DR
 
-- `$ docker-machine up artifactory`
+- `$ docker-compose up artifactory`
 - `$ docker-machine ip cdi-poc`
 - Point your browser to the IP that docker-machine provides in the previous command. http://<ip>:8081
 - Log in using admin and adminpassword for username and password, respectively
@@ -255,6 +255,21 @@ While the Docker registry container is known to other containers using the netwo
 
 - `$ docker-compose up registry`
 
+## PyPI
+
+Artifactory OSS does not support PyPI repositories. In order to store Python artifacts, a separate PyPI container is included.
+
+## The PyPI Secrets Directory
+
+A user and password must be setup in the PyPI repo before artifacts can be deployed to it. If there is not already a `secrets`
+directory under `pypi`, go ahead and create it. Within the `secrets` directory, run the following:
+
+- `$ htpasswd -s .htpasswd some_username_of_your_choosing`
+
+`htpasswd` will prompt you for a password before it exits.
+
+##
+
 ## Jenkins
 
 Jenkins is the glue that creates the Continuous Delivery pipeline.
@@ -283,6 +298,19 @@ keystore so that the Jenkins instance may communicate with HTTPS websites
 - `id_rsa and id_rsa.pub`: This pair of files should be your ssh keypair that is used
 in GitHub to provide access to the repositories that include your microservice stacks.
 See [GitHub documentation](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/) for more information
+
+- `.pypirc`: This is a configuration file that tells `pip` how to upload Python artifacts to
+the PyPI repo that was created earlier. The file should look something like this:
+```
+[distutils]
+index-servers =
+    docker
+
+[docker]
+repository: http://pypi:80
+username: some_username_of_your_choosing_from_the_pypi_step
+password: some_password_of_your_choosing_from_the_pypi_step
+```
 
 #### Environments file
 
