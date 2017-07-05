@@ -4,8 +4,8 @@ import jenkins.model.Jenkins
 
 final jenkins = Jenkins.getInstance()
 
-final itemName = 'Falcon Docker Image'
-final configXml = new FileInputStream('/falcon_docker_image.xml')
+final itemName = 'python_docker_image'
+final configXml = new FileInputStream('/python_docker_image.xml')
 final item = jenkins.getItemByFullName(itemName, AbstractItem.class)
 
 if (item != null) {

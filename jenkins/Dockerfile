@@ -52,6 +52,7 @@ USER jenkins
 COPY jobs/dropwizard.xml /dropwizard.xml
 COPY jobs/dropwizard_docker_image.xml /dropwizard_docker_image.xml
 COPY jobs/build_python_wheel.xml /build_python_wheel.xml
+COPY jobs/python_docker_image.xml /python_docker_image.xml
 
 # Copy in the scripts
 COPY scripts/start_sshd.groovy /usr/share/jenkins/ref/init.groovy.d/1_start_sshd.groovy
@@ -66,4 +67,4 @@ COPY scripts/add_github_ssh_credentials.groovy /usr/share/jenkins/ref/init.groov
 COPY scripts/dropwizard_config.groovy /usr/share/jenkins/ref/init.groovy.d/50_dropwizard_config.groovy
 COPY scripts/dropwizard_docker_image_config.groovy /usr/share/jenkins/ref/init.groovy.d/51_dropwizard_docker_image_config.groovy
 COPY scripts/build_python_wheel_config.groovy /usr/share/jenkins/ref/init.groovy.d/60_build_python_wheel_config.groovy
-COPY scripts/falcon_docker_image_config.groovy /usr/share/jenkins/ref/init.groovy.d/61_falcon_docker_image_config.groovy
+COPY scripts/python_docker_image_config.groovy /usr/share/jenkins/ref/init.groovy.d/61_python_docker_image_config.groovy
