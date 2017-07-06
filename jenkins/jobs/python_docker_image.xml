@@ -17,7 +17,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git@github.com:USGS-CIDA/poc-dropwizard-example-docker.git</url>
+        <url>git@github.com:ayan-usgs/falcon-docker-poc.git</url>
         <credentialsId>GITHUB_SSH_CREDENTIALS</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
@@ -28,7 +28,12 @@
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <submoduleCfg class="list"/>
-    <extensions/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.LocalBranch>
+        <localBranch>master</localBranch>
+      </hudson.plugins.git.extensions.impl.LocalBranch>
+      <hudson.plugins.git.extensions.impl.WipeWorkspace/>
+    </extensions>
   </scm>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
@@ -37,35 +42,18 @@
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.38.1">
-      <project>Dropwizard/io.dropwizard$dropwizard-example</project>
-      <filter>**/*.jar</filter>
-      <target></target>
-      <excludes>**/*-sources.jar</excludes>
-      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
-      <flatten>true</flatten>
-      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
-    </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
       <command>docker login -u $DOCKER_REG_USER -p $DOCKER_REG_PASSWORD localhost:5000</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
 
-rm *-sources.jar
-
-for f in *.jar; do FILENAME=$f;done
-
-IS_SNAPSHOT=0
-if [[ $FILENAME == *&quot;SNAPSHOT&quot;* ]]; then
-  VERSION=&quot;latest&quot;
-else
-	VERSION=$(echo $FILENAME | cut -f3 -d-)
-fi
-
-echo &quot;VERSION=${VERSION}&quot; &gt;&gt; config.properties
-
-mv dropwizard-example*.jar dropwizard-example.jar</command>
+echo &quot;VERSION=latest&quot; &gt;&gt; config.properties
+cp /usr/lib/ssl/certs/local.crt root.crt
+virtualenv --python=python3 env
+env/bin/pip install --upgrade pip
+env/bin/pip download falcon-hello-world --extra-index-url http://pypi:80/ --no-deps --trusted-host pypi
+</command>
     </hudson.tasks.Shell>
     <EnvInjectBuilder plugin="envinject@2.1.1">
       <info>
@@ -80,7 +68,7 @@ mv dropwizard-example*.jar dropwizard-example.jar</command>
         <url>https://localhost:5000/</url>
         <credentialsId>PRIVATE_DOCKER_REGISTRY_CREDENTIALS</credentialsId>
       </registry>
-      <repoName>localhost:5000/dropwizard-example</repoName>
+      <repoName>localhost:5000/falcon-example</repoName>
       <noCache>false</noCache>
       <forcePull>true</forcePull>
       <skipBuild>false</skipBuild>

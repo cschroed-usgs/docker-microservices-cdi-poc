@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates cur
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
 RUN apt-get update && apt-get -y install docker-ce
+RUN apt-get install -y python3-pip python3-dev build-essential virtualenv
+RUN /usr/bin/pip3 install --upgrade pip
 RUN usermod -aG docker jenkins
 
 # This gets us around having to manually add github to the known hosts file
@@ -36,6 +38,12 @@ ENV JENKINS_HOME /var/jenkins_home
 COPY secrets/id_rsa /usr/share/jenkins/ref/.ssh/id_rsa
 COPY secrets/id_rsa.pub /usr/share/jenkins/ref/.ssh/id_rsa.pub
 
+# Copy .pypirc file
+COPY secrets/.pypirc /usr/share/jenkins/ref/.pypirc
+
+# Copy pip.conf file
+COPY pip.conf /usr/share/jenkins/ref/.pip/pip.conf
+
 USER root
 RUN chown -R jenkins:jenkins /usr/share/jenkins/ref/.ssh && chmod 700 /usr/share/jenkins/ref/.ssh && chmod 600 /usr/share/jenkins/ref/.ssh/*
 USER jenkins
@@ -43,6 +51,8 @@ USER jenkins
 # Copy in the jobs
 COPY jobs/dropwizard.xml /dropwizard.xml
 COPY jobs/dropwizard_docker_image.xml /dropwizard_docker_image.xml
+COPY jobs/build_python_wheel.xml /build_python_wheel.xml
+COPY jobs/python_docker_image.xml /python_docker_image.xml
 
 # Copy in the scripts
 COPY scripts/start_sshd.groovy /usr/share/jenkins/ref/init.groovy.d/1_start_sshd.groovy
@@ -56,3 +66,5 @@ COPY scripts/add_github_ssh_credentials.groovy /usr/share/jenkins/ref/init.groov
 
 COPY scripts/dropwizard_config.groovy /usr/share/jenkins/ref/init.groovy.d/50_dropwizard_config.groovy
 COPY scripts/dropwizard_docker_image_config.groovy /usr/share/jenkins/ref/init.groovy.d/51_dropwizard_docker_image_config.groovy
+COPY scripts/build_python_wheel_config.groovy /usr/share/jenkins/ref/init.groovy.d/60_build_python_wheel_config.groovy
+COPY scripts/python_docker_image_config.groovy /usr/share/jenkins/ref/init.groovy.d/61_python_docker_image_config.groovy

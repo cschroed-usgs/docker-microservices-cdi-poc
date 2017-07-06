@@ -41,7 +41,7 @@ if the `boot2docker` VM is restarted. Alternatively, a `/var/lib/boot2docker/boo
 can be created on the VM that is run on boot. This can be done as follows:
 
 ```
-$printf "#\!/bin/sh\nln -s -f \"/hosthome/${USER}\" \"/home/${USER}\"\n" | docker-machine ssh cdi-poc sudo tee /var/lib/boot2docker/bootlocal.sh
+$printf "#\!/bin/sh\n\nln -s -f \"/hosthome/${USER}\" \"/home/${USER}\"\nchown -R docker:staff \"/home/${USER}\"\n" | docker-machine ssh cdi-poc sudo tee /var/lib/boot2docker/bootlocal.sh
 $docker-machine ssh cdi-poc sudo chmod +x /var/lib/boot2docker/bootlocal.sh
 ```
 
@@ -190,7 +190,7 @@ You can then point your browser to http://192.168.99.100:8081
 
 #### <a name="artifactory-tldr"></a>TL;DR
 
-- `$ docker-machine up artifactory`
+- `$ docker-compose up artifactory`
 - `$ docker-machine ip cdi-poc`
 - Point your browser to the IP that docker-machine provides in the previous command. http://<ip>:8081
 - Log in using admin and adminpassword for username and password, respectively
@@ -255,6 +255,22 @@ While the Docker registry container is known to other containers using the netwo
 
 - `$ docker-compose up registry`
 
+## PyPI
+
+Artifactory OSS does not support PyPI repositories. In order to store Python artifacts, a separate PyPI container is included.
+
+## Creating a custom PyPI repo username and password
+
+A user and password must be setup in the PyPI repo before artifacts can be deployed to it. While a default user and password are included, a custom username and password can be specified. To do so, `cd` to the `pypi/secrets` directory and run the following:
+
+- `$ htpasswd -s .htpasswd some_username_of_your_choosing`
+
+`htpasswd` will prompt you for a password before it exits.
+
+To launch type: `docker-compose up pypi`
+
+##
+
 ## Jenkins
 
 Jenkins is the glue that creates the Continuous Delivery pipeline.
@@ -283,6 +299,20 @@ keystore so that the Jenkins instance may communicate with HTTPS websites
 - `id_rsa and id_rsa.pub`: This pair of files should be your ssh keypair that is used
 in GitHub to provide access to the repositories that include your microservice stacks.
 See [GitHub documentation](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/) for more information
+
+- `.pypirc`: This is a configuration file that tells `pip` how to upload Python artifacts to
+the PyPI repo that was created earlier. The default should look something like this:
+```
+[distutils]
+index-servers =
+    docker
+
+[docker]
+repository: http://pypi:80
+username: some_username_of_your_choosing_from_the_pypi_step
+password: some_password_of_your_choosing_from_the_pypi_step
+```
+If you made a custom user and password, replace those values in the `.pypirc`.
 
 #### Environments file
 

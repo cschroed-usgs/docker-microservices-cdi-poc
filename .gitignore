@@ -1,9 +1,13 @@
 .DS_Store
 !.keep
+!./pypi/secrets/.htpasswd
 data/registry
 root.crt
 ./jenkins/id_rsa
 ./jenkins/id_rsa.pub
+!./jenkins/secrets/.pypirc
 *_local.env
 id_rsa
 id_rsa.pub
+data/jenkins
+data/pypi

@@ -27,6 +27,21 @@ services:
     env_file:
       - "./registry/compose${DOCKER_REGISTRY_ENV_LOCAL}.env"
 
+  pypi:
+    image: codekoala/pypi:1.2.0
+    container_name: pypi
+    networks:
+      microservice-cdi-poc-network:
+        aliases:
+          - pypi
+    ports:
+      - "9000:80"
+    volumes:
+      - ./data/pypi:/srv/pypi
+      - "./pypi/secrets:/secrets:rw"
+    env_file:
+      - "./pypi/compose${DOCKER_REGISTRY_ENV_LOCAL}.env"
+
   jenkins:
     build:
       context: ./jenkins
