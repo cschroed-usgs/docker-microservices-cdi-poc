@@ -269,8 +269,6 @@ A user and password must be setup in the PyPI repo before artifacts can be deplo
 
 To launch type: `docker-compose up pypi`
 
-##
-
 ## Jenkins
 
 Jenkins is the glue that creates the Continuous Delivery pipeline.

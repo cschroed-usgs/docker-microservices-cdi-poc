@@ -63,6 +63,7 @@ COPY scripts/install_maven.groovy /usr/share/jenkins/ref/init.groovy.d/5_install
 COPY scripts/add_registry_credentials.groovy /usr/share/jenkins/ref/init.groovy.d/6_add_registry_credentials.groovy
 COPY scripts/set_git_global_config.groovy /usr/share/jenkins/ref/init.groovy.d/7_set_git_global_config.groovy
 COPY scripts/add_github_ssh_credentials.groovy /usr/share/jenkins/ref/init.groovy.d/8_add_github_ssh_credentials.groovy
+COPY scripts/enable_slave_master_access_control.groovy /usr/share/jenkins/ref/init.groovy.d/9_enable_slave_master_access_control.groovy
 
 COPY scripts/dropwizard_config.groovy /usr/share/jenkins/ref/init.groovy.d/50_dropwizard_config.groovy
 COPY scripts/dropwizard_docker_image_config.groovy /usr/share/jenkins/ref/init.groovy.d/51_dropwizard_docker_image_config.groovy
