@@ -382,7 +382,7 @@ for yourself, you can run the following from the root directory of this project
 once you've updated the plugins:
 
 ```
-JENKINS_HOST=http://jenkins:jenkins@`docker-machine ip <machine name>`:8080
+JENKINS_HOST=http://jenkins:jenkins@`docker-machine ip cdi-poc`:8080
 curl -sSL "$JENKINS_HOST/pluginManager/api/xml?depth=1&xpath=/*/*/shortName|/*/*/version&wrapper=plugins" \
   | perl -pe 's/.*?<shortName>([\w-]+).*?<version>([^<]+)()(<\/\w+>)+/\1 \2\n/g'|sed 's/ /:/' > jenkins/plugins.txt
 ```
