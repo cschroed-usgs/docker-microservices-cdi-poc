@@ -143,14 +143,20 @@ Any text prefaced with `$` is a bash command
 
 - Copy your organization's root SSL certificate to your current working directory
 
-- `$ docker-machine create -d virtualbox --virtualbox-memory "4096" --virtualbox-hostonly-nictype Am79C973 --virtualbox-cpu-count "2" cdi-poc`
+```
+$ docker-machine create -d virtualbox --virtualbox-memory "4096" --virtualbox-hostonly-nictype Am79C973 --virtualbox-cpu-count "2" cdi-poc
+```
 
-- `$ echo "sudo mkdir -p /var/lib/boot2docker/certs; \
+```
+$ echo "sudo mkdir -p /var/lib/boot2docker/certs; \
 echo "\""$(cat root.crt)"\"" | \
 sudo tee -a /var/lib/boot2docker/certs/root.crt" | \
 docker-machine ssh cdi-poc && docker-machine restart cdi-poc`
+```
 
-- `$ eval $(docker-machine env cdi-poc)`
+```
+$ eval $(docker-machine env cdi-poc)
+```
 
 ## Artifactory ([tl;dr](#artifactory-tldr))
 
